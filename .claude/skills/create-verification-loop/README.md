@@ -3,7 +3,7 @@
   names. Keep usage and maintenance notes here.
 -->
 
-# verification-loop
+# create-verification-loop
 
 A Claude Code skill that installs, in any repository, a verification loop distilled from
 production repos that run agents at scale: one gate command (`scripts/verify.sh fast|full`), a
@@ -13,13 +13,13 @@ that carries its evidence. It interviews the repo, not the person.
 
 ## Install
 
-Symlink or copy `.claude/skills/verification-loop` into `~/.claude/skills/` (user-level) or a
+Symlink or copy `.claude/skills/create-verification-loop` into `~/.claude/skills/` (user-level) or a
 project's `.claude/skills/`. Then in any repo:
 
 ```
-/verification-loop                 # the current directory
-/verification-loop ~/src/app --plan-only
-/verification-loop . --skip ci,verify-skill
+/create-verification-loop                 # the current directory
+/create-verification-loop ~/src/app --plan-only
+/create-verification-loop . --skip ci,verify-skill
 ```
 
 ## Layout

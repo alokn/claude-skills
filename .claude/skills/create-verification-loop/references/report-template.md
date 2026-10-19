@@ -7,7 +7,7 @@ not run.
 ```markdown
 # Verification loop: <repo name> (<absolute path>)
 
-Run on <date> by the verification-loop skill. Branch: <branch>. Nothing was committed.
+Run on <date> by the create-verification-loop skill. Branch: <branch>. Nothing was committed.
 
 ## What the repo is
 

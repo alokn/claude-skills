@@ -1,5 +1,5 @@
 ---
-name: verification-loop
+name: create-verification-loop
 description: >
   Use when asked to set up, install, harden or audit a repository's verification loop, definition
   of done, agent guardrails, Claude Code hooks, AGENTS.md/CLAUDE.md, init script, ratchet or
@@ -73,7 +73,7 @@ nothing); `--skip <list>` to leave out `hooks`, `ci`, `docs`, `pr` or `verify-sk
 ```bash
 SKILL_DIR=<absolute path of this skill directory>
 REPO=<absolute repo path>
-WORK=<scratchpad dir>/verification-loop-$(date +%s); mkdir -p "$WORK"
+WORK=<scratchpad dir>/create-verification-loop-$(date +%s); mkdir -p "$WORK"
 ```
 
 ### Step 1: Interview (deterministic, then by hand)
