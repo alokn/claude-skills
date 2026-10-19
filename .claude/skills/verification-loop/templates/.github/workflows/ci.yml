@@ -1,0 +1,70 @@
+# The check on the default branch: the full gate on a fresh checkout, independent of any local
+# pass record, never writing the baseline (--check fails a regression; an improvement is a notice
+# to commit from a local run). `gate` is the one status to require in branch protection: it fails
+# when any job was skipped, cancelled or failed, so "did not run" never reads as "passed".
+#
+# CONFIGURE: the setup steps (toolchain, services) and the branch name.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.event_name == 'pull_request' && format('ci-pr-{0}', github.event.pull_request.number) || format('ci-{0}-{1}', github.ref, github.sha) }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  verify:
+    name: verify (the full gate, --check)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      # Toolchain from the pin file, the same one init.sh reads:
+      # - uses: jdx/mise-action@v2
+      # - uses: actions/setup-node@v4
+      #   with: { node-version-file: .nvmrc, cache: npm }
+      # - uses: astral-sh/setup-uv@v5          # python (uv); then `uv sync --frozen`
+      # - uses: actions/setup-python@v5
+      #   with: { python-version-file: .python-version }
+      # - uses: ruby/setup-ruby@v1
+      #   with: { bundler-cache: true }          # ruby: .ruby-version, bundle install
+      # - uses: actions/setup-go@v5
+      #   with: { go-version-file: go.mod }
+      # - uses: dtolnay/rust-toolchain@stable
+      # Services the gate needs, as a throwaway instance of their own:
+      # services: { db: { image: postgres:16, ports: ['5432:5432'], env: { POSTGRES_PASSWORD: ci } } }
+      - name: Dependencies (exactly the lockfile)
+        run: echo "CONFIGURE: npm ci / pnpm install --frozen-lockfile / uv sync --frozen"
+      - name: The gate
+        run: scripts/verify.sh full --check
+      - name: Keep the reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: verify-${{ github.run_attempt }}
+          path: .verify/
+          include-hidden-files: true
+          if-no-files-found: ignore
+          retention-days: 14
+
+  gate:
+    name: gate
+    if: always()
+    needs: [verify]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Every job succeeded
+        env:
+          VERIFY: ${{ needs.verify.result }}
+        run: |
+          echo "verify=$VERIFY"
+          [ "$VERIFY" = success ] || { echo "::error::not every CI job succeeded"; exit 1; }
