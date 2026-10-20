@@ -4,7 +4,9 @@ a "Verification" block with the summary lines of your green full gate and the SH
 on, so don't paste that output here, and don't add a heading of your own named "Verification".
 -->
 
-Closes #N <!-- the issue this PR fully resolves; Refs #N for one it only advances -->
+Tracker: <!-- ID or URL of the issue (KEY-n, #n, a link); "none" if there is none -->
+
+Closes #N <!-- GitHub issues only: the one this PR fully resolves; Refs #N for one it only advances -->
 
 ## Problem and resulting behaviour
 

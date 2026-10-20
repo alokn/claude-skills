@@ -19,7 +19,9 @@ git checkout -b <branch> origin/<default>
 scripts/verify.sh fast         # the inner loop, ~<n> s
 scripts/verify.sh full         # THE gate: exit 0 is the definition of done
 git push -u origin <branch>    # explicit paths only when committing: never `git add -A`
-scripts/pr.sh --title "…" --body-file <file>   # opens the PR with its Verification block
+                               # branch names: <you>/<key>-<n>-<slug>, e.g. you/eng-12-fix-login
+scripts/pr.sh --issue <KEY-n|#n|URL> --title "…" --body-file <file>
+                               # opens the PR with its Tracker ID and Verification block
 ```
 
 ## Commands
@@ -81,6 +83,12 @@ Don't claim a change is done, fixed, or passing without having just run the comm
 it and read its output. Quote the output (or the relevant lines) in your report.
 `scripts/verify.sh full` exiting 0 is what "done" means for anything that touches code, tests
 or config.
+
+## Tracker ID
+
+Every PR names its tracker issue: a `Tracker:` line in the body (`KEY-<n>`, `#<n>`, a URL, or
+`none`) or `KEY-<n>` at the start of the title. `scripts/pr.sh --issue <id>` fills both; CI's
+`tracker` check fails a PR without one.
 
 ## Escalation
 

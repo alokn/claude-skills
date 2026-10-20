@@ -40,11 +40,12 @@ templates/                   what gets copied into the target repo and configure
   scripts/tree-fingerprint.sh  fingerprint + last-pass / last-fast-pass records
   scripts/init-stamp.sh        the init stamp the init guard reads
   scripts/pr-check.sh, pr.sh   the PR path
+  scripts/tracker.py           the tracker-ID rule (pure logic, --selftest)
   scripts/lib/command-parse.sh payload parsing shared by the guards
   hooks/stop-verify.sh, init-guard.sh, pr-guard.sh
   settings.json                the hook wiring
   init.sh                      the setup skeleton
-  .github/workflows/ci.yml, .github/pull_request_template.md
+  .github/workflows/ci.yml, tracker.yml, .github/pull_request_template.md
   AGENTS.md, CLAUDE.md             (repo root)
   docs/HOOKS.md, docs/agents/testing.md
 ```

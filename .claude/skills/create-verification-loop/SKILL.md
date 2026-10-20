@@ -150,7 +150,11 @@ interview lists them; it must be committed for `init.sh` and CI to work), then c
    `find . -name '*.md' -not -path '*/node_modules/*' | xargs grep -ohE 'scripts/[a-z-]+\.(sh|py)' | sort -u`
    against `ls scripts`.
 7. **PR path (P8)** unless `--skip pr`: `scripts/pr.sh`, `scripts/pr-check.sh`, the PR
-   template. Prove `scripts/pr-check.sh` refuses now (dirty, unpushed) with the commands named.
+   template, and the tracker rule: `scripts/tracker.py`, `.github/workflows/tracker.yml`, and
+   the AGENTS.md branch-naming line. Set `BRANCH_KEYS` in `tracker.py` from the interview's
+   "Issue tracker" section (real project keys only; empty if none). Call it "tracker" everywhere,
+   never a vendor's name. Run `python3 scripts/tracker.py --selftest`. Prove `scripts/pr-check.sh`
+   refuses now (dirty, unpushed) with the commands named.
 8. **CI (P9)** unless `--skip ci`: a new workflow from the template, or `scripts/verify.sh full
    --check` added to the existing one, plus the `gate` job. Validate the YAML
    (`python3 -c 'import yaml,sys; yaml.safe_load(open(sys.argv[1]))' <file>` or

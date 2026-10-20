@@ -192,6 +192,22 @@ has .github/dependabot.yml && row "dependabot" "present"
 has renovate.json && row "renovate" "present"
 row "branch protection" "unknown from disk; check with: gh api repos/{owner}/{repo}/branches/<default>/protection"
 
+section "Issue tracker (for the PR tracker rule)"
+echo "| Item | Evidence |"; echo "|---|---|"
+# Project keys: KEY-<n> as a branch-name segment or a commit-subject prefix. Ignore versions,
+# charsets and years that look the same.
+keys="$( { git for-each-ref --format='%(refname:short)' refs/heads refs/remotes 2>/dev/null | sed 's#^[^/]*/##' | tr '/' '\n'
+          git log -n 200 --format='%s' 2>/dev/null | sed -n 's/^[[]*\([A-Za-z][A-Za-z0-9]*-[0-9][0-9]*\).*/\1/p'
+        } | sed -n 's/^\([A-Za-z][A-Za-z0-9]*\)-[0-9][0-9]*\(-.*\)\{0,1\}$/\1/p' | tr 'a-z' 'A-Z' \
+        | grep -vE '^(UTF|ISO|COVID|SHA|MD|NODE|PYTHON|PY|V|RC|CVE|HTTP|ES|TLS|SSL|IPV|X|ARM|AMD|OS|IOS)$' | sort | uniq -c | sort -rn | head -5 | tr -s ' ' | tr '\n' ';')"
+row "key candidates (count KEY)" "${keys:-none seen in branches or the last 200 commit subjects}"
+tr_hits="$(grep -rilE 'linear\.app|atlassian\.net|jira|plane\.so|app\.plane|shortcut\.com|clickup' --include='*.md' --include='*.yml' --include='*.yaml' --include='*.json' . 2>/dev/null | grep -v node_modules | head -3 | tr '\n' ' ')"
+row "tracker named in docs/config" "${tr_hits:-none}"
+git log -n 200 --format='%s' 2>/dev/null | grep -qE '(^|[^0-9])#[0-9]+' && row "GitHub issue refs in commits" "yes (#n); GitHub Issues is likely the tracker"
+echo
+echo "Set BRANCH_KEYS in scripts/tracker.py to the keys that are real project keys; leave it empty"
+echo "when none are (branch names are then never read)."
+
 section "Agent instructions and Claude Code setup already present"
 echo "| File | Lines | Notes |"; echo "|---|---|---|"
 for f in AGENTS.md CLAUDE.md CONTEXT.md CONTRIBUTING.md README.md GEMINI.md .cursorrules .cursor/rules .windsurfrules docs/agent.md docs/agents.md; do

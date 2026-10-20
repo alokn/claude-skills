@@ -226,6 +226,17 @@ session's files may be in the tree.
 **Why.** "I ran the tests" in a PR body is a claim; the summary lines with the SHA are a
 record. The template makes the agent say what it did not run.
 
+**Every PR names its tracker issue**, whichever tracker the team uses, so the work can be traced
+from the issue to the change. An accepted ID is `KEY-<n>` (Linear, Jira, Plane), `#<n>` (GitHub
+Issues) or a URL (anything else); `Tracker: none` is the explicit opt-out. Only a `Tracker:` line
+in the body and a `KEY-<n>` at the start of the title count, because matching IDs anywhere gives
+false positives ("UTF-8", "COVID-19", "see #3"). Branch names are read only for configured
+project keys, because `node-22-upgrade` looks like an ID. `scripts/pr.sh --issue <id>` fills the
+body line and title prefix, and warns but still opens the PR when there is none. A separate
+`tracker` workflow (on `edited` too, so a title fix re-runs only it) makes it required. Text
+reaches the script through the environment, never argv or `${{ }}` in `run`. The logic is one
+stdlib Python file with a self-test, so it ports to any repo.
+
 ## P9. CI is the same gate on a fresh checkout, never writing
 
 **What.** One workflow runs the full gate with `--check` on every push to the default branch

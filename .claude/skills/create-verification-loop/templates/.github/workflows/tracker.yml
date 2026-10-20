@@ -1,0 +1,26 @@
+# Every PR names its tracker issue (Linear, Jira, Plane, GitHub Issues, any): a "Tracker:" line in
+# the body or a KEY-<n> at the start of the title; "Tracker: none" opts out. See scripts/tracker.py.
+# Its own workflow, so editing the title or body re-runs only this check, not the gate.
+# Make `tracker` a required check next to `gate` where the plan allows.
+name: tracker
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, edited, reopened, synchronize]
+
+permissions:
+  contents: read
+
+jobs:
+  tracker:
+    name: tracker
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - uses: actions/checkout@v4
+      - name: The PR names its tracker issue
+        env:  # through env, never ${{ }} inside run: a title or body is untrusted text
+          TITLE: ${{ github.event.pull_request.title }}
+          BODY: ${{ github.event.pull_request.body }}
+        run: python3 scripts/tracker.py check
