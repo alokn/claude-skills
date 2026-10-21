@@ -8,8 +8,8 @@
 A Claude Code skill that installs, in any repository, a verification loop distilled from
 production repos that run agents at scale: one gate command (`scripts/verify.sh fast|full`), a
 one-step `init.sh`, a ratchet (`verify-baseline.json`), determinism scans, a tree fingerprint,
-Claude Code hooks (Stop, init guard, PR guard), agent docs that load themselves, and a PR path
-that carries its evidence. It interviews the repo, not the person.
+Claude Code hooks (Stop, init guard, PR guard, PR body), agent docs that load themselves, and a
+PR path that carries its evidence and whose body is checked (template, checker, hook, CI job). It interviews the repo, not the person.
 
 ## Install
 
@@ -40,11 +40,12 @@ templates/                   what gets copied into the target repo and configure
   scripts/tree-fingerprint.sh  fingerprint + last-pass / last-fast-pass records
   scripts/init-stamp.sh        the init stamp the init guard reads
   scripts/pr-check.sh, pr.sh   the PR path
+  scripts/pr-body.py           the PR body checker (sections, labelled lines, diff cross-checks)
   scripts/lib/command-parse.sh payload parsing shared by the guards
-  hooks/stop-verify.sh, init-guard.sh, pr-guard.sh
+  hooks/stop-verify.sh, init-guard.sh, pr-guard.sh, pr-body.sh
   settings.json                the hook wiring
   init.sh                      the setup skeleton
-  .github/workflows/ci.yml, .github/pull_request_template.md
+  .github/workflows/ci.yml, pr-body.yml, .github/pull_request_template.md
   AGENTS.md, CLAUDE.md             (repo root)
   docs/HOOKS.md, docs/agents/testing.md
 ```
@@ -60,7 +61,15 @@ node.
   ratchet's first write, hold, regression, allowed drop, refused drop and stale-write paths; the
   init guard (missing, stale, ok, quoted mention, heredoc), the PR guard (refused with three
   reasons, quoted mention), the Stop hook (silent, PASSED, exit 2 twice, budget message,
-  --user-prompt reset, PREFLIGHT down, live lock held).
+  --user-prompt reset, PREFLIGHT down, live lock held). The PR body path, on a throwaway repo
+  with a bare origin: the checker (untouched template refused naming every section, a filled
+  body passed, plain "None" under Decisions refused on a source change, "None: mechanical"
+  passed, a missing drops row, issue and labelled-line problems, a duplicated section, an
+  unknown base and a missing file as exit 2); the hook (inline `--body`, `--fill`, an unfilled
+  file and a `cd $VAR` refused; a filled file, `cd <path> && … -F ../body.md`, a title-only
+  edit, the quoted mention and a checkout without the checker passed); `pr.sh` with stubbed
+  `gh` (an unfilled body refused before `gh` ran). The `pr body` workflow is from Offsider's
+  shipped one (WobbitCode/offsider#970), unproven here until a run exists.
 - GREEN: Opus subagents running the skill end to end on a Node (npm/vitest) repo, a Python
   (uv/pytest/ruff/mypy) repo and a Rails 8 (minitest/rubocop/brakeman) repo. Their findings
   (a report-file collision, a figures step that failed open, scans that skipped untracked files,

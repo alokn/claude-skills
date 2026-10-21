@@ -25,7 +25,7 @@ CI, what agent docs existed.>
 | P5 | Fingerprint | absent | `scripts/tree-fingerprint.sh` | |
 | P6 | Hooks | absent | Stop, init guard, PR guard | |
 | P7 | Agent docs | AGENTS.md (40 lines) | extended; 2 area docs; .claude/rules | |
-| P8 | PR path | absent | pr.sh, PR template | unproven: no remote |
+| P8 | PR path | absent | pr.sh, PR template, pr-body.py + hook + `pr body` job | unproven: no remote |
 | P9 | CI | ci.yml (tests only) | verify --check + gate job | unproven: not pushed |
 | P10 | verify skill | absent | skipped: library, no surface | |
 | P11 | Completion evidence / escalation | absent | in AGENTS.md | |

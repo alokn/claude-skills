@@ -22,6 +22,7 @@ turn and sends stderr to the model as the reason, anything else shows an error a
 | UserPromptSubmit | `.claude/hooks/stop-verify.sh --user-prompt` | Resets the Stop hook's failure budget | silent |
 | PreToolUse (Bash) | `.claude/hooks/init-guard.sh` | Refuses an install until `./init.sh` stamped the worktree | exit 2 |
 | PreToolUse (Bash) | `.claude/hooks/pr-guard.sh` | Refuses `gh pr create` on a dirty, unpushed or unverified tree | exit 2 |
+| PreToolUse (Bash) | `.claude/hooks/pr-body.sh` | Refuses a PR body that is inline or doesn't fill the template (`scripts/pr-body.py`) | exit 2 |
 | Stop | `.claude/hooks/stop-verify.sh` | Runs `scripts/verify.sh fast` when the session changed an input to the gate; blocks on red | JSON; exit 2 |
 
 Three things they share: they read a command with quoted strings and heredoc bodies stripped
@@ -35,6 +36,7 @@ when a service is down, the lock is held, or after two failures with nobody typi
 ```bash
 echo '{"cwd":"'"$PWD"'","tool_name":"Bash","tool_input":{"command":"<install command>"}}' | .claude/hooks/init-guard.sh; echo "exit=$?"
 echo '{"cwd":"'"$PWD"'","tool_input":{"command":"gh pr create"}}' | .claude/hooks/pr-guard.sh; echo "exit=$?"
+echo '{"cwd":"'"$PWD"'","tool_input":{"command":"gh pr create --body-file .github/pull_request_template.md"}}' | .claude/hooks/pr-body.sh; echo "exit=$?"
 echo '{"session_id":"try"}' | .claude/hooks/stop-verify.sh --session-start
 echo '{"session_id":"try"}' | .claude/hooks/stop-verify.sh; echo "exit=$?"
 rm -rf "$(git rev-parse --git-dir)/verify-loop/stop-hook"/try.*
@@ -52,6 +54,7 @@ guarantee:
 |---|---|
 | Init guard | `./init.sh` is the documented first step (`AGENTS.md`) |
 | PR guard | `scripts/pr.sh` runs the same check; CI's `gate` runs the full gate on every PR |
+| PR body hook | `scripts/pr.sh` runs the checker; CI's `pr body` runs it on every PR and every edit of its description (the web UI included) |
 | Stop hook | `scripts/verify.sh full` by hand, and CI. A fast pass never counts as a full one |
 
 ## Changing or adding a hook

@@ -19,7 +19,7 @@ git checkout -b <branch> origin/<default>
 scripts/verify.sh fast         # the inner loop, ~<n> s
 scripts/verify.sh full         # THE gate: exit 0 is the definition of done
 git push -u origin <branch>    # explicit paths only when committing: never `git add -A`
-scripts/pr.sh --title "…" --body-file <file>   # opens the PR with its Verification block
+scripts/pr.sh --title "…" --body-file <file>   # checks the body, opens the PR with its Verification block
 ```
 
 ## Commands
@@ -81,6 +81,11 @@ Don't claim a change is done, fixed, or passing without having just run the comm
 it and read its output. Quote the output (or the relevant lines) in your report.
 `scripts/verify.sh full` exiting 0 is what "done" means for anything that touches code, tests
 or config.
+
+A PR body is a file that fills `.github/pull_request_template.md`, passed with `--body-file`
+(never an inline `--body`): every section, "None" where it applies. Each ruling you made goes
+under "Decisions and trade-offs" as one line (what, the alternatives, why, the cost if wrong),
+declined review findings too. `scripts/pr-body.py` checks it before the PR opens and in CI.
 
 ## Escalation
 

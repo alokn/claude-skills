@@ -65,6 +65,11 @@ echo '{"cwd":"'"$PWD"'","tool_name":"Bash","tool_input":{"command":"grep \"npm i
 # PR guard: refused on an unpushed or unverified tree; the refusal names the commands
 echo '{"cwd":"'"$PWD"'","tool_input":{"command":"gh pr create"}}' | $H/pr-guard.sh; echo "exit=$?"
 echo '{"cwd":"'"$PWD"'","tool_input":{"command":"gh issue create --body \"run gh pr create later\""}}' | $H/pr-guard.sh; echo "exit=$?"
+# PR body hook: refused on an inline body or an unfilled file; a filled file and a mention pass
+echo '{"cwd":"'"$PWD"'","tool_input":{"command":"gh pr create --title x --body \"y\""}}' | $H/pr-body.sh; echo "exit=$?"
+echo '{"cwd":"'"$PWD"'","tool_input":{"command":"gh pr create --body-file .github/pull_request_template.md"}}' | $H/pr-body.sh; echo "exit=$?"
+echo '{"cwd":"'"$PWD"'","tool_input":{"command":"gh pr create --body-file <a filled body>"}}' | $H/pr-body.sh; echo "exit=$?"  # 0
+echo '{"cwd":"'"$PWD"'","tool_input":{"command":"gh issue create --body \"then gh pr create --body x\""}}' | $H/pr-body.sh; echo "exit=$?"  # 0
 # Stop hook: silent on an unchanged tree; runs on a change; blocks (2) on red; budget; reset
 echo '{"session_id":"try"}' | $H/stop-verify.sh --session-start
 echo '{"session_id":"try"}' | $H/stop-verify.sh; echo "exit=$?"          # 0, silent
