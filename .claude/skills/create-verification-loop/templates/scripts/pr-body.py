@@ -175,7 +175,8 @@ def main() -> int:
         print(f"pr body: cannot check: {' '.join(e.cmd)} failed ({e.stderr.strip()}); fetch the base and try again",
               file=sys.stderr)
         return 2
-    drops_changed = any(p == BASELINE for _, p in files) and drops(base) != drops("HEAD")
+    # A baseline absent at one side has no drops: the PR that adds it records none.
+    drops_changed = any(p == BASELINE for _, p in files) and (drops(base) or "[]") != (drops("HEAD") or "[]")
     problems = problems_with(body, files, drops_changed)
     if not problems:
         print("✓ pr body: every section of the template is filled")
