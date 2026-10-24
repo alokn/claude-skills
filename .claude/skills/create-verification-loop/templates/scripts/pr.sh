@@ -5,7 +5,9 @@
 # body a "Verification" block: the summary lines of the gate that passed and the HEAD it passed
 # on. No harness needed: a person or any agent runs it.
 #
-# The body is whatever you pass (--body/-b, --body-file/-F, `-` for stdin), then the block.
+# The body is whatever you pass (--body/-b, --body-file/-F, `-` for stdin), then the block. The
+# body must fill .github/pull_request_template.md: scripts/pr-body.py checks it against --base
+# (else origin's default branch) before anything is opened, as the hook and CI's `pr body` do.
 set -uo pipefail
 SELF="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 "$SELF/pr-check.sh" || exit 1
@@ -28,15 +30,23 @@ verification_block() {
 
 tmp="$(mktemp)" || exit 1
 trap 'rm -f "$tmp"' EXIT
-args=(); body=""
+args=(); body=""; base=""
 while [ "$#" -gt 0 ]; do
   case "$1" in
     --body | -b) body="${2-}"; shift 2 || shift ;;
     --body=*) body="${1#--body=}"; shift ;;
     --body-file | -F) if [ "${2-}" = "-" ]; then body="$(cat)"; else body="$(cat "${2-}")" || exit 1; fi; shift 2 || shift ;;
     --body-file=*) body="$(cat "${1#--body-file=}")" || exit 1; shift ;;
+    --base | -B) base="${2-}"; args+=("$1" "${2-}"); shift 2 || shift ;;
+    --base=*) base="${1#--base=}"; args+=("$1"); shift ;;
     *) args+=("$1"); shift ;;
   esac
 done
+if [ -f "$SELF/pr-body.py" ]; then
+  [ -n "$base" ] || base="$(git symbolic-ref -q --short refs/remotes/origin/HEAD)"
+  base="${base#origin/}"
+  printf '%s\n' "$body" > "$tmp"
+  python3 -I "$SELF/pr-body.py" --body-file "$tmp" --base "origin/${base:-main}" || exit 1
+fi
 { [ -n "$body" ] && printf '%s\n\n' "$body"; verification_block; } > "$tmp"
 gh pr create ${args[@]+"${args[@]}"} --body-file "$tmp"

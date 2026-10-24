@@ -90,10 +90,11 @@ payload_command() {
 }
 
 payload_field() {
-  local field_re="\"$1\"[[:space:]]*:[[:space:]]*${json_string}" out
+  # Not `out`: json_decode_into has a local of that name, which would take the value.
+  local field_re="\"$1\"[[:space:]]*:[[:space:]]*${json_string}" field_value
   [[ $payload =~ $field_re ]] || return 1
-  json_decode_into out "${BASH_REMATCH[1]}"
-  printf '%s' "$out"
+  json_decode_into field_value "${BASH_REMATCH[1]}"
+  printf '%s' "$field_value"
 }
 
 target_checkout() {

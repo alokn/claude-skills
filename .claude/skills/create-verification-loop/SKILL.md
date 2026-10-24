@@ -3,7 +3,8 @@ name: create-verification-loop
 description: >
   Use when asked to set up, install, harden or audit a repository's verification loop, definition
   of done, agent guardrails, Claude Code hooks, AGENTS.md/CLAUDE.md, init script, ratchet or
-  deterministic verification, or to make a repo "agent-ready" with a gate, hooks and a ratchet.
+  deterministic verification, a PR template that is actually filled (template, checker, hook, CI
+  job), or to make a repo "agent-ready" with a gate, hooks and a ratchet.
   Works on any repo and language (Node and React Native, Python, Ruby/Rails, PHP, Go, Rust, JVM,
   .NET); interviews the repo, not the user.
 argument-hint: "[path] [--plan-only] [--skip hooks,ci,docs,pr,verify-skill]"
@@ -136,6 +137,8 @@ interview lists them; it must be committed for `init.sh` and CI to work), then c
    defaults fit a repo with no services; keep only this ecosystem's installs).
    Run every payload in `hook-contract.md` and record each exit code: init guard refused then
    allowed after the stamp, the quoted mention allowed; PR guard refused with three reasons;
+   PR body hook refused on an inline `--body` and on an unfilled body file, passed on a filled
+   one and on the quoted mention;
    Stop hook silent, then PASSED after a touch, then exit 2 twice on a broken test, then the
    budget message, then reset. Merge the hook entries into an existing `.claude/settings.json`
    rather than replacing it. If `claude` is on PATH (`command claude`, in case a shell function
@@ -150,9 +153,15 @@ interview lists them; it must be committed for `init.sh` and CI to work), then c
    `find . -name '*.md' -not -path '*/node_modules/*' | xargs grep -ohE 'scripts/[a-z-]+\.(sh|py)' | sort -u`
    against `ls scripts`.
 7. **PR path (P8)** unless `--skip pr`: `scripts/pr.sh`, `scripts/pr-check.sh`, the PR
-   template. Prove `scripts/pr-check.sh` refuses now (dirty, unpushed) with the commands named.
+   template, `scripts/pr-body.py` and its hook. Edit the checker's `CONFIGURE` block to the
+   template: `SOURCE` to this repo's source paths, `CROSS_CHECKS` to the boundaries it has (its
+   migrations directory, a locked catalogue; delete the rest). Prove `scripts/pr-check.sh`
+   refuses now (dirty, unpushed) with the commands named, and `scripts/pr-body.py --body-file
+   .github/pull_request_template.md --base origin/<default>` refuses the untouched template,
+   naming every section.
 8. **CI (P9)** unless `--skip ci`: a new workflow from the template, or `scripts/verify.sh full
-   --check` added to the existing one, plus the `gate` job. Validate the YAML
+   --check` added to the existing one, plus the `gate` job, and `pr-body.yml` (P8) unless
+   `--skip pr`; the docs name both `gate` and `pr body` as the checks to require. Validate the YAML
    (`python3 -c 'import yaml,sys; yaml.safe_load(open(sys.argv[1]))' <file>` or
    `ruby -ryaml -e 'YAML.load_file(ARGV[0])' <file>`, whichever exists); it is reported as
    unproven until a run exists.
@@ -184,4 +193,5 @@ done and why, and the files to commit. Tell the user the absolute path.
 | "While I'm here, this endpoint should return 400" | Setup is not a feature. File it. |
 | "The repo already has a verify script; the template is cleaner" | Compose, don't replace. Add what's missing around it. |
 | "No tests exist, so there's nothing to ratchet" | Ceilings still ratchet (markers, suppressions). Say in the report that the first test is next. |
+| "The PR body is short, I'll pass it with `--body`" | An inline body skips the template and the check. Write it to a file and pass `--body-file`. |
 | "I'll commit so the worktree proof works" | Copy the files into the worktree instead. Committing is the user's call. |

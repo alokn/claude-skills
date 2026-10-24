@@ -16,6 +16,7 @@ Committed hooks (`.claude/settings.json`) verify for you:
 | `UserPromptSubmit` | `.claude/hooks/stop-verify.sh --user-prompt` | Resets the Stop hook's failure budget: a person is back | Silent |
 | `PreToolUse` (`Bash`) | `.claude/hooks/init-guard.sh` | Refuses a hand-run install until `./init.sh` has stamped the worktree | Exit 2 |
 | `PreToolUse` (`Bash`) | `.claude/hooks/pr-guard.sh` | Refuses `gh pr create` unless the tree is clean, pushed, and the full gate passed this exact tree | Exit 2 |
+| `PreToolUse` (`Bash`) | `.claude/hooks/pr-body.sh` | Refuses `gh pr create`, or a `gh pr edit` that sets the body, unless the body comes from `--body-file` and fills `.github/pull_request_template.md` (`scripts/pr-body.py`) | Exit 2, naming what is missing |
 | `Stop` | `.claude/hooks/stop-verify.sh` | If this session changed an input to the gate, runs `scripts/verify.sh fast` and blocks the turn on red | `systemMessage`; exit 2 on a failure |
 
 The Stop hook is feedback, not the merge gate. It exits 0 *without verifying* when a service is
@@ -29,7 +30,8 @@ goes through. Each judges the checkout the payload's `cwd` is in. Run one by han
 payloads in `docs/HOOKS.md`.
 
 **What still holds without the hooks** (`gh api`, another harness, or your own terminal skip
-them): `scripts/pr.sh` runs the PR guard's check; CI's `gate` runs the full gate on every PR;
+them): `scripts/pr.sh` runs the PR guard's check and the body check; CI's `gate` runs the full
+gate on every PR, and `pr body` checks the description on every PR and every edit of it;
 `./init.sh` is the documented first step.
 
 ## Rules that load themselves

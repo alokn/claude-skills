@@ -165,6 +165,8 @@ its push gate's marker on a git tree id plus the untracked paths.
 - **PreToolUse on Bash: the init guard** refuses an install until `init.sh` stamped the worktree.
 - **PreToolUse on Bash: the PR guard** refuses `gh pr create` unless the tree is clean, pushed,
   and `last-pass` equals its fingerprint.
+- **PreToolUse on Bash: the PR body hook** refuses `gh pr create` or a body-setting `gh pr edit`
+  unless the body comes from `--body-file` and passes `scripts/pr-body.py` (P8).
 - **Domain guards** where the repo has an irreversible path: a hand-written migration, a push to
   a protected branch, an edit under a locked acceptance-test catalogue (a `.locked` file turns
   the guard on), a push whose branch changes source without a fresh coverage marker.
@@ -214,17 +216,58 @@ subagents. The other repo keeps a CONTEXT.md vocabulary and a `docs/adr/` direct
 area docs where the repo has two areas with different traps (often: testing-and-the-gate, and
 the main runtime). The reading map is the minimum.
 
-## P8. The PR path: a PR carries its evidence
+## P8. The PR path: a PR carries its evidence, and its body is checked
 
 **What.** `scripts/pr.sh` runs the same check as the PR guard, then `gh pr create` with your
 arguments and a Verification block appended: the gate's summary lines and the HEAD they passed
-on. A PR template asks for the problem and resulting behaviour, the boundaries crossed, the
-checks run beyond the gate, what was proposed but not run, and remaining limitations, each
-follow-up as an issue. Commit with explicit paths, never `git add -A`, because another
-session's files may be in the tree.
+on. Commit with explicit paths, never `git add -A`, because another session's files may be in
+the tree. The body itself is held by four parts, each small:
 
-**Why.** "I ran the tests" in a PR body is a claim; the summary lines with the SHA are a
-record. The template makes the agent say what it did not run.
+- **A template** (`.github/pull_request_template.md`): Issue; Why; What changed, ending with a
+  `Security and isolation:` line and a `Deploy notes:` line; Decisions and trade-offs, one line
+  per decision with the alternatives, why, and the cost if wrong, declined review findings
+  included; Checks run beyond the gate, and what was not run; Affected boundaries; Review;
+  Follow-ups and flakes; Ratchet drops, only when there are drops.
+- **A checker** (`scripts/pr-body.py --body-file F | --pr N --base REV`): every section present
+  once and non-empty, where "None" is content and an untouched template comment is not; the
+  labelled lines present; plain "None" under Decisions refused when source changed ("None:
+  mechanical" passes). Then it cross-checks the diff since the merge base: each kind of file
+  that needs a reviewer's eye must be named in its section. The template's `CROSS_CHECKS` are
+  examples: a new migration, an edit to a locked test catalogue, a public contract. A change
+  to the ratchet's `allowedDrops` needs a Ratchet drops row. Bots are exempt.
+- **A Claude Code hook** (`.claude/hooks/pr-body.sh`, PreToolUse on Bash): `gh pr create`, or a
+  `gh pr edit` that sets the body, must take it from `--body-file <path>`; an inline `--body`,
+  `--fill`, `--web`, an editor or stdin is refused. Then it runs the checker against the base.
+  `scripts/pr.sh` runs the checker itself, so it holds outside Claude Code too.
+- **A CI job** (`pr body`, its own workflow on `opened, edited, reopened, synchronize`): the
+  checker with `--pr`, reading the body through the API so the newest edit is judged.
+
+How an agent fills it: write the body to a file, fill every section from the work (the
+rulings it made go under Decisions and trade-offs, one line each), pass `--body-file`, and fix
+what the hook names.
+
+**Why.** Before this, in the reference repo, the template was ignored by every PR: an agent
+passes the body inline with `--body`, which skips the template, and nothing checked. A template
+alone is a suggestion. The hook gives the agent the problems before the PR exists, not one CI
+round later; a git hook can't, because a PR body is not in git. CI is the backstop for what no
+hook sees: the web UI, a person without the hook, an edit after creation. The edit trigger
+re-runs only this job, never the heavy gate, and it is a separate required check so a
+description edit never replaces the code's `gate` status with a run that verified nothing.
+"I ran the tests" in a body is a claim; the summary lines with the SHA are a record, and the
+Decisions section is what a reviewer reads to argue with the change, not reconstruct it.
+
+**In the reference implementations.** The checker is `scripts/pr-body.mjs` with its pure part
+in a lib and unit tests; the hook follows `cd` like the push gate and reads the PR's own base
+for an edit; the cross-checks are new migrations, the locked acceptance catalogues (read from
+the lock hook's own list) and the ratchet's `allowedDrops`. Its `pr body` job sits in the main
+workflow and feeds `ci result`, the one job that decides a merge: a description edit plans
+`rerun=false, body=true`, so only `pr body` runs, and `ci result` takes the code's verdict from
+the earlier run on the same head and judges the new body.
+
+**Adapt.** Keep the section names; edit `SECTIONS`, `LABELLED_LINES`, `SOURCE` and
+`CROSS_CHECKS` in the checker to match. Keep only the cross-checks for boundaries this repo has.
+Where the repo has one job that decides every merge, fold `pr body` into it and carry the code's
+verdict on an edit, as above; otherwise require `gate` and `pr body` side by side.
 
 ## P9. CI is the same gate on a fresh checkout, never writing
 

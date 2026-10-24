@@ -1,29 +1,55 @@
 <!--
-Open the PR with `scripts/pr.sh --title "…" --body-file <this template, filled in>`. It appends
-a "Verification" block with the summary lines of your green full gate and the SHA they passed
-on, so don't paste that output here, and don't add a heading of your own named "Verification".
+Write this body to a file and open the PR with `scripts/pr.sh --title "…" --body-file <file>`
+(or `gh pr create --body-file <file>`). scripts/pr-body.py checks it first, in the hook and in
+CI: every section present and filled, "None" where it applies; an untouched comment is empty.
+scripts/pr.sh appends a "Verification" block with the summary lines of your green full gate and
+the SHA they passed on, so don't paste that output here or add a heading named "Verification".
 -->
 
-Closes #N <!-- the issue this PR fully resolves; Refs #N for one it only advances -->
+## Issue
 
-## Problem and resulting behaviour
+<!-- #N (Closes #N when this PR fully resolves it), or "None: <why>". -->
 
-<!-- What was wrong or missing, and for whom. Then what happens now. -->
+## Why
 
-## Affected boundaries
+<!-- One or two lines: what was wrong or missing, and for whom. -->
 
-<!-- Which of these the change crosses, or "none": a shared contract; the database (a
-migration, a column); the gate (a test, a figure, verify-baseline.json, CI); a dependency or the
-toolchain. -->
+## What changed
+
+<!-- Behaviour, as bullets. End with the two lines below, each "None" or what it is. -->
+
+- 
+
+Security and isolation: <!-- None, or what it touches (auth, tenancy, secrets, input from outside) and how that was proven. -->
+Deploy notes: <!-- None, or config, env, migration order or rollout steps. -->
+
+## Decisions and trade-offs
+
+<!-- One line per decision: what was decided, the alternatives, why, and the cost if it is wrong.
+Declined review findings go here too, with the reason. "None: mechanical" only for a mechanical change. -->
 
 ## Checks run beyond the gate
 
-<!-- Only what you ran, each with its command and the result you read. -->
+<!-- Only what you ran, each with its command and the result you read. Then what the change
+deserves that you didn't run, and why. -->
 
-## Proposed, not run
+## Affected boundaries
 
-<!-- Validation the change deserves that you didn't run, and why. "None" is a fine answer. -->
+<!-- "None", or each one crossed, by path: a migration, a locked test (setup-only or assertion,
+and who approved an assertion change), a shared contract, a dependency or the toolchain. -->
 
-## Remaining limitations
+## Review
 
-<!-- What this doesn't do, and the follow-up issue for each (#N). -->
+<!-- The reviewer, the rounds and the findings fixed. Declined findings go under Decisions and trade-offs. -->
+
+## Follow-ups and flakes
+
+<!-- "None", or the issues filed (#N) and the flakes recorded. -->
+
+## Ratchet drops
+
+<!-- Only when verify-baseline.json's allowedDrops changes (scripts/verify.sh full --allow-drop);
+otherwise delete this section. For a test count, one row per removed test. -->
+
+| Figure or removed test | Reason | What still covers it |
+|---|---|---|
